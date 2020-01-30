@@ -128,6 +128,9 @@ class InputReaderInterface(object):
 
         self._prev_thrust = 0
         self._last_time = 0
+        self._last_time_nonzero = 0
+        self._armed = 0
+        self._armed_previous = 0
         # How low you have to pull the thrust to bypass the slew-rate (0-100%)
         self.thrust_stop_limit = -90
 
@@ -188,44 +191,67 @@ class InputReaderInterface(object):
                 # Scale the thrust to percent (it's between 0 and 1)
                 thrust *= 100
 
-                # The default action is to just use the thrust...
-                limited_thrust = thrust
-                if limited_thrust > self.input.max_thrust:
-                    limited_thrust = self.input.max_thrust
+                if thrust >= -90:
+                    self._last_time_nonzero = current_time
+                    self._armed_previous = self._armed
+                
+                if (current_time - self._last_time_nonzero) > 2.0 and self._armed_previous == 0:
+                    self._armed = 1
+                elif (current_time - self._last_time_nonzero) > 2.0 and self._armed_previous ==1:
+                    self._armed = 0
 
-                # ... but if we are lowering the thrust, check the limit
-                if self._prev_thrust > thrust >= self.thrust_stop_limit and \
-                        not emergency_stop:
-                    # If we are above the limit, then don't use the slew...
-                    if thrust > self.input.thrust_slew_limit:
-                        limited_thrust = thrust
-                    else:
-                        # ... but if we are below first check if we "entered"
-                        # the limit, then set it to the limit
-                        if self._prev_thrust > self.input.thrust_slew_limit:
-                            limited_thrust = self.input.thrust_slew_limit
-                        else:
-                            # If we are "inside" the limit, then lower
-                            # according to the rate we have set each iteration
-                            lowering = ((current_time - self._last_time) *
-                                        self.input.thrust_slew_rate)
-                            limited_thrust = self._prev_thrust - lowering
-                elif emergency_stop or thrust < self.thrust_stop_limit:
-                    # If the thrust have been pulled down or the
-                    # emergency stop has been activated then bypass
-                    # the slew and force 0
-                    self._prev_thrust = 0
-                    limited_thrust = 0
+                ## The default action is to just use the thrust...
+                # limited_thrust = thrust
+                # if limited_thrust > self.input.max_thrust:
+                #    limited_thrust = self.input.max_thrust
+
+                # # ... but if we are lowering the thrust, check the limit
+                # if self._prev_thrust > thrust >= self.thrust_stop_limit and \
+                #         not emergency_stop:
+                #     # If we are above the limit, then don't use the slew...
+                #     if thrust > self.input.thrust_slew_limit:
+                #         limited_thrust = thrust
+                #     else:
+                #         # ... but if we are below first check if we "entered"
+                #         # the limit, then set it to the limit
+                #         if self._prev_thrust > self.input.thrust_slew_limit:
+                #             limited_thrust = self.input.thrust_slew_limit
+                #         else:
+                #             # If we are "inside" the limit, then lower
+                #             # according to the rate we have set each iteration
+                #             lowering = ((current_time - self._last_time) *
+                #                         self.input.thrust_slew_rate)
+                #             limited_thrust = self._prev_thrust - lowering
+                # elif emergency_stop or thrust < self.thrust_stop_limit:
+                #     # If the thrust have been pulled down or the
+                #     # emergency stop has been activated then bypass
+                #     # the slew and force 0
+                #     self._prev_thrust = 0
+                #     limited_thrust = 0
 
                 # For the next iteration set the previous thrust to the limited
                 # one (will be the slewed thrust if we are slewing)
-                self._prev_thrust = limited_thrust
+                # self._prev_thrust = limited_thrust
 
-                # Lastly make sure we're following the "minimum" thrust setting
-                if limited_thrust < self.input.min_thrust:
-                    self._prev_thrust = 0
+                # # Lastly make sure we're following the "minimum" thrust setting
+                # if limited_thrust < self.input.min_thrust:
+                #     self._prev_thrust = 0
+                #     limited_thrust = 0
+
+                if self._armed ==1:
+                    # Replacing the default action
+                    # Scaling the thrust such that at 100% stick command we get max_thrust
+                    limited_thrust = thrust*(self.input.max_thrust-self.input.min_thrust)/100+self.input.min_thrust;
+                
+                
+                    if emergency_stop or limited_thrust < self.thrust_stop_limit: #or limited_thrust < (self.input.min_thrust+1):
+                        self._prev_thrust = 0
+                        limited_thrust = 0
+                else:
                     limited_thrust = 0
 
+                self._prev_thrust = limited_thrust
+                
                 self._last_time = current_time
 
                 thrust = limited_thrust
