@@ -144,20 +144,25 @@ class _JS():
         """Update the internal absolute state of buttons and axes"""
         if jsdata[JE_TYPE] & JS_EVENT_AXIS != 0:
             self.axes[jsdata[JE_NUMBER]] = jsdata[JE_VALUE] / 32768.0
-        elif jsdata[JE_TYPE] & JS_EVENT_BUTTON != 0:
-            self.buttons[jsdata[JE_NUMBER]] = jsdata[JE_VALUE]
+            if jsdata[JE_NUMBER] == 4:
+                if jsdata[JE_VALUE] < -10000:
+                    self.buttons[jsdata[JE_NUMBER]] = 1
+                else:
+                    self.buttons[jsdata[JE_NUMBER]] = 0
+        # elif jsdata[JE_TYPE] & JS_EVENT_BUTTON != 0:
+        #     self.buttons[jsdata[JE_NUMBER]] = jsdata[JE_VALUE]
 
-    def __decode_event(self, jsdata):
-        """ Decode a jsdev event into a dict """
-        # TODO: Add timestamp?
-        if jsdata[JE_TYPE] & JS_EVENT_AXIS != 0:
-            return JEvent(evt_type=TYPE_AXIS,
-                          number=jsdata[JE_NUMBER],
-                          value=jsdata[JE_VALUE] / 32768.0)
-        if jsdata[JE_TYPE] & JS_EVENT_BUTTON != 0:
-            return JEvent(evt_type=TYPE_BUTTON,
-                          number=jsdata[JE_NUMBER],
-                          value=jsdata[JE_VALUE] / 32768.0)
+    # def __decode_event(self, jsdata):
+    #     """ Decode a jsdev event into a dict """
+    #     # TODO: Add timestamp?
+    #     if jsdata[JE_TYPE] & JS_EVENT_AXIS != 0:
+    #         return JEvent(evt_type=TYPE_AXIS,
+    #                       number=jsdata[JE_NUMBER],
+    #                       value=jsdata[JE_VALUE] / 32768.0)
+    #     if jsdata[JE_TYPE] & JS_EVENT_BUTTON != 0:
+    #         return JEvent(evt_type=TYPE_BUTTON,
+    #                       number=jsdata[JE_NUMBER],
+    #                       value=jsdata[JE_VALUE] / 32768.0)
 
     def _read_all_events(self):
         """Consume all the events queued up in the JS device"""
@@ -166,6 +171,7 @@ class _JS():
                 data = self._f.read(struct.calcsize(JS_EVENT_FMT))
                 jsdata = struct.unpack(JS_EVENT_FMT, data)
                 self.__updatestate(jsdata)
+                # print(self.buttons)
         except IOError as e:
             if e.errno != 11:
                 logger.info(str(e))
