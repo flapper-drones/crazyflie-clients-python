@@ -132,7 +132,7 @@ class InputReaderInterface(object):
         self._armed = 0
         self._armed_previous = 0
         # How low you have to pull the thrust to bypass the slew-rate (0-100%)
-        self.thrust_stop_limit = -90
+        self.thrust_stop_limit = 10
 
     def open(self):
         """Initialize the reading and open the device with deviceId and set the
@@ -189,16 +189,17 @@ class InputReaderInterface(object):
 
             else:
                 # Scale the thrust to percent (it's between 0 and 1)
-                thrust *= 100
+                thrust *= 50
+                thrust += 50
 
-                if thrust >= -90:
-                    self._last_time_nonzero = current_time
-                    self._armed_previous = self._armed
+                # if thrust >= -90:
+                #     self._last_time_nonzero = current_time
+                #     self._armed_previous = self._armed
                 
-                if (current_time - self._last_time_nonzero) > 2.0 and self._armed_previous == 0:
-                    self._armed = 1
-                elif (current_time - self._last_time_nonzero) > 2.0 and self._armed_previous ==1:
-                    self._armed = 0
+                # if (current_time - self._last_time_nonzero) > 2.0 and self._armed_previous == 0:
+                #     self._armed = 1
+                # elif (current_time - self._last_time_nonzero) > 2.0 and self._armed_previous ==1:
+                #     self._armed = 0
 
                 ## The default action is to just use the thrust...
                 # limited_thrust = thrust
@@ -238,17 +239,17 @@ class InputReaderInterface(object):
                 #     self._prev_thrust = 0
                 #     limited_thrust = 0
 
-                if self._armed ==1:
+                # if self._armed ==1:
                     # Replacing the default action
                     # Scaling the thrust such that at 100% stick command we get max_thrust
-                    limited_thrust = thrust*(self.input.max_thrust-self.input.min_thrust)/100+self.input.min_thrust;
+                # limited_thrust = thrust*(self.input.max_thrust-self.input.min_thrust)/100+self.input.min_thrust;
                 
-                
-                    if emergency_stop or limited_thrust < self.thrust_stop_limit: #or limited_thrust < (self.input.min_thrust+1):
-                        self._prev_thrust = 0
-                        limited_thrust = 0
-                else:
+                limited_thrust = thrust
+                if emergency_stop or limited_thrust < self.thrust_stop_limit: #or limited_thrust < (self.input.min_thrust+1):
+                    self._prev_thrust = 0
                     limited_thrust = 0
+                # else:
+                #     limited_thrust = 0
 
                 self._prev_thrust = limited_thrust
                 
