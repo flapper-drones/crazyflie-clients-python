@@ -79,7 +79,7 @@
             <item row="3" column="0">
              <widget class="QLabel" name="label_2">
               <property name="text">
-               <string>Roll Trim</string>
+               <string>Roll CMD Trim</string>
               </property>
              </widget>
             </item>
@@ -106,7 +106,7 @@
             <item row="4" column="0">
              <widget class="QLabel" name="label_3">
               <property name="text">
-               <string>Pitch Trim</string>
+               <string>Pitch CMD Trim</string>
               </property>
              </widget>
             </item>
@@ -379,7 +379,7 @@
           </sizepolicy>
          </property>
          <property name="title">
-          <string>Flight Data</string>
+          <string>Flight Data (Flapper Drone)</string>
          </property>
          <layout class="QGridLayout" name="gridLayout">
           <item row="0" column="0">
@@ -554,8 +554,11 @@
               </item>
               <item row="1" column="9" rowspan="7">
                <widget class="QProgressBar" name="actualM1">
+                <property name="minimum">
+                 <number>9362</number>
+                </property>
                 <property name="maximum">
-                 <number>65535</number>
+                 <number>56173</number>
                 </property>
                 <property name="value">
                  <number>0</number>
@@ -607,7 +610,7 @@
               <item row="0" column="9">
                <widget class="QLabel" name="M1label">
                 <property name="text">
-                 <string>M1</string>
+                 <string>ML</string>
                 </property>
                </widget>
               </item>
@@ -621,7 +624,7 @@
               <item row="0" column="11">
                <widget class="QLabel" name="M3label">
                 <property name="text">
-                 <string>M3</string>
+                 <string>SY</string>
                 </property>
                </widget>
               </item>
@@ -668,14 +671,17 @@
               <item row="0" column="10">
                <widget class="QLabel" name="M2label">
                 <property name="text">
-                 <string>M2</string>
+                 <string>SP</string>
                 </property>
                </widget>
               </item>
               <item row="1" column="12" rowspan="7">
                <widget class="QProgressBar" name="actualM4">
+                <property name="minimum">
+                 <number>9362</number>
+                </property>
                 <property name="maximum">
-                 <number>65535</number>
+                 <number>56173</number>
                 </property>
                 <property name="value">
                  <number>0</number>
@@ -688,7 +694,7 @@
               <item row="0" column="12">
                <widget class="QLabel" name="M4label">
                 <property name="text">
-                 <string>M4</string>
+                 <string>MR</string>
                 </property>
                </widget>
               </item>

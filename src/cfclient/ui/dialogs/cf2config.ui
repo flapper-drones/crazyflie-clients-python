@@ -17,7 +17,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Crazyflie 2.X config</string>
+   <string>Flapper Drone config</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_3">
    <item row="0" column="0">
@@ -36,21 +36,21 @@
           <string>Restart needed for changes to take effect</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_2">
-          <item row="6" column="0">
+          <item row="9" column="0">
            <widget class="QLabel" name="label_9">
             <property name="text">
              <string>Radio bandwith:</string>
             </property>
            </widget>
           </item>
-          <item row="5" column="0">
+          <item row="8" column="0">
            <widget class="QLabel" name="label_8">
             <property name="text">
              <string>Radio channel:</string>
             </property>
            </widget>
           </item>
-          <item row="5" column="1">
+          <item row="8" column="1">
            <widget class="QSpinBox" name="_radio_channel">
             <property name="prefix">
              <string>Ch. </string>
@@ -60,7 +60,7 @@
             </property>
            </widget>
           </item>
-          <item row="11" column="1">
+          <item row="14" column="1">
            <spacer name="verticalSpacer">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
@@ -72,6 +72,19 @@
              </size>
             </property>
            </spacer>
+          </item>
+          <item row="1" column="1">
+           <widget class="QDoubleSpinBox" name="_pitch_trim">
+            <property name="decimals">
+             <number>1</number>
+            </property>
+            <property name="minimum">
+             <double>-10.000000000000000</double>
+            </property>
+            <property name="maximum">
+             <double>10.000000000000000</double>
+            </property>
+           </widget>
           </item>
           <item row="2" column="1">
            <widget class="QDoubleSpinBox" name="_roll_trim">
@@ -86,7 +99,37 @@
             </property>
            </widget>
           </item>
-          <item row="8" column="1">
+          <item row="3" column="1">
+           <widget class="QSpinBox" name="_servo_neutral_pitch">
+            <property name="minimum">
+             <number>25</number>
+            </property>
+            <property name="maximum">
+             <number>75</number>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QSpinBox" name="_servo_neutral_yaw">
+            <property name="minimum">
+             <number>25</number>
+            </property>
+            <property name="maximum">
+             <number>75</number>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
+           <widget class="QSpinBox" name="_motor_bias_roll">
+            <property name="minimum">
+             <number>-25</number>
+            </property>
+            <property name="maximum">
+             <number>25</number>
+            </property>
+           </widget>
+          </item>
+          <item row="11" column="1">
            <layout class="QGridLayout" name="gridLayout_4">
             <item row="0" column="1">
              <widget class="QPushButton" name="_exit_btn">
@@ -107,20 +150,7 @@
             </item>
            </layout>
           </item>
-          <item row="1" column="1">
-           <widget class="QDoubleSpinBox" name="_pitch_trim">
-            <property name="decimals">
-             <number>1</number>
-            </property>
-            <property name="minimum">
-             <double>-10.000000000000000</double>
-            </property>
-            <property name="maximum">
-             <double>10.000000000000000</double>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="1">
+          <item row="9" column="1">
            <widget class="QComboBox" name="_radio_speed">
             <property name="editable">
              <bool>false</bool>
@@ -146,27 +176,48 @@
            </widget>
           </item>
           <item row="1" column="0">
-           <widget class="QLabel" name="label_4">
+           <widget class="QLabel" name="label_6">
             <property name="text">
-             <string>Pitch trim:</string>
+             <string>Pitch trim IMU (deg):</string>
             </property>
            </widget>
           </item>
           <item row="2" column="0">
            <widget class="QLabel" name="label_6">
             <property name="text">
-             <string>Roll trim:</string>
+             <string>Roll trim IMU (deg):</string>
             </property>
            </widget>
           </item>
-          <item row="7" column="0">
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_6">
+            <property name="text">
+             <string>Pitch servo neutral (%):</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_6">
+            <property name="text">
+             <string>Yaw servo neutral (%):</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="label_6">
+            <property name="text">
+             <string>Motor bias roll (%):</string>
+            </property>
+           </widget>
+          </item>
+          <item row="10" column="0">
            <widget class="QLabel" name="label_10">
             <property name="text">
              <string>Radio Address:</string>
             </property>
            </widget>
           </item>
-          <item row="7" column="1">
+          <item row="10" column="1">
            <widget class="HexSpinBox" name="_radio_address"/>
           </item>
          </layout>

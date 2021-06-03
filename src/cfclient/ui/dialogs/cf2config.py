@@ -73,6 +73,9 @@ class Cf2ConfigDialog(QtWidgets.QWidget, service_dialog_class):
     def _data_updated(self, mem):
         self._roll_trim.setValue(mem.elements["roll_trim"])
         self._pitch_trim.setValue(mem.elements["pitch_trim"])
+        self._servo_neutral_pitch.setValue(mem.elements["servo_neutral_pitch"])
+        self._servo_neutral_yaw.setValue(mem.elements["servo_neutral_yaw"])
+        self._motor_bias_roll.setValue(mem.elements["motor_bias_roll"])
         self._radio_channel.setValue(mem.elements["radio_channel"])
         self._radio_speed.setCurrentIndex(mem.elements["radio_speed"])
         if "radio_address" in mem.elements:
@@ -91,6 +94,9 @@ class Cf2ConfigDialog(QtWidgets.QWidget, service_dialog_class):
         self._write_data_btn.setEnabled(False)
         self._roll_trim.setValue(0)
         self._pitch_trim.setValue(0)
+        self._servo_neutral_pitch.setValue(50)
+        self._servo_neutral_yaw.setValue(50)
+        self._motor_bias_roll.setValue(0)
         self._radio_channel.setValue(0)
         self._radio_speed.setCurrentIndex(0)
         self._radio_address.setValue(0)
@@ -101,6 +107,9 @@ class Cf2ConfigDialog(QtWidgets.QWidget, service_dialog_class):
         mem = self._cf.mem.get_mems(MemoryElement.TYPE_I2C)[0]
         mem.elements["pitch_trim"] = self._pitch_trim.value()
         mem.elements["roll_trim"] = self._roll_trim.value()
+        mem.elements["servo_neutral_pitch"] = self._servo_neutral_pitch.value()
+        mem.elements["servo_neutral_yaw"] = self._servo_neutral_yaw.value()
+        mem.elements["motor_bias_roll"] = self._motor_bias_roll.value()
         mem.elements["radio_channel"] = self._radio_channel.value()
         mem.elements["radio_speed"] = self._radio_speed.currentIndex()
         if "radio_address" in mem.elements:
