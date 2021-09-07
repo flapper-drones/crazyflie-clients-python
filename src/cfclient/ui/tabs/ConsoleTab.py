@@ -110,8 +110,8 @@ class ConsoleTab(Tab, console_tab_class):
     def _connected(self, link_uri):
         """Callback when the Crazyflie has been connected"""
         self._dumpSystemLoadButton.setEnabled(True)
-        self._propellerTestButton.setEnabled(True)
-        self._batteryTestButton.setEnabled(True)
+        # self._propellerTestButton.setEnabled(True)
+        # self._batteryTestButton.setEnabled(True)
 
     def _disconnected(self, link_uri):
         """Callback for when the Crazyflie has been disconnected"""
