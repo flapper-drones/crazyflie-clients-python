@@ -34,7 +34,7 @@ import logging
 
 from PyQt5 import uic
 from PyQt5.QtCore import pyqtSignal, QTimer
-from PyQt5.QtGui import QMessageBox
+from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtWidgets import QFileDialog
 
 import cfclient
@@ -651,7 +651,7 @@ class LighthouseTab(Tab, lighthouse_tab_class):
                     label.setToolTip('')
 
     def _load_sys_config_button_clicked(self):
-        names = QFileDialog.getOpenFileName(self, 'Open file', self._helper.current_folder, "*.yaml;*.*")
+        names = QFileDialog.getOpenFileName(self, 'Open file', self._helper.current_folder, "*.yaml;;*.*")
 
         if names[0] == '':
             return
@@ -673,7 +673,7 @@ class LighthouseTab(Tab, lighthouse_tab_class):
         self._save_sys_config(self._lh_geos, calibs, system_type)
 
     def _save_sys_config(self, geos, calibs, system_type):
-        names = QFileDialog.getSaveFileName(self, 'Save file', self._helper.current_folder, "*.yaml;*.*")
+        names = QFileDialog.getSaveFileName(self, 'Save file', self._helper.current_folder, "*.yaml;;*.*")
 
         if names[0] == '':
             return

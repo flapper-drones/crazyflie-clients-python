@@ -132,14 +132,14 @@ setup(
         ],
     },
 
-    install_requires=platform_requires + ['cflib~=0.1.15.0',
+    install_requires=platform_requires + ['cflib>=0.1.16',
                                           'appdirs~=1.4.0',
                                           'pyzmq~=19.0',
                                           'pyqtgraph~=0.11',
                                           'PyYAML~=5.3',
                                           'quamash~=0.6.1',
                                           'qtm~=2.0.2',
-                                          'numpy~=1.19.2',
+                                          'numpy>=1.19.2,<1.24',
                                           'vispy~=0.6.6',
                                           'pyserial~=3.5'],
 

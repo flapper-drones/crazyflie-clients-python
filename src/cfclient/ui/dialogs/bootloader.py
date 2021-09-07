@@ -367,8 +367,6 @@ class CrazyloadThread(QThread):
         self._terminate_flashing = False
 
         self._bl = Bootloader()
-        self._bl.progress_cb = self.statusChanged.emit
-        self._bl.terminate_flashing_cb = lambda: self._terminate_flashing
 
         self._cf = crazyflie
 
@@ -392,20 +390,7 @@ class CrazyloadThread(QThread):
         self.connectingSignal.emit()
 
         try:
-            success = self._bl.start_bootloader(warm_boot=False)
-            if not success:
-                self.failed_signal.emit("Could not connect to bootloader")
-            else:
-                self.connectedSignal.emit()
-        except Exception as e:
-            self.failed_signal.emit("{}".format(e))
-
-    def rebootToBootloader(self):
-        self._bl.clink = self._cf.link_uri
-        self._cf.close_link()
-
-        try:
-            success = self._bl.start_bootloader(warm_boot=True)
+            success = self._bl.start_bootloader(warm_boot=False, cf=None)
             if not success:
                 self.failed_signal.emit("Could not connect to bootloader")
             else:
@@ -414,18 +399,22 @@ class CrazyloadThread(QThread):
             self.failed_signal.emit("{}".format(e))
 
     def programAction(self, filename, mcu_to_flash):
-
-        if self._boot_mode == self.WARM_BOOT:
-            self.rebootToBootloader()
-
         targets = {}
         if mcu_to_flash:
             targets[mcu_to_flash] = ("fw",)
         try:
             self._terminate_flashing = False
-            self._bl.flash(str(filename), targets)
+            self._bl.clink = self._cf.link_uri
+            self._bl.flash_full(self._cf,
+                                str(filename),
+                                self._boot_mode is self.WARM_BOOT,
+                                targets,
+                                None,
+                                self.statusChanged.emit,
+                                lambda: self._terminate_flashing)
             self.programmed.emit(True)
-        except Exception:
+        except Exception as e:
+            self.failed_signal.emit("{}".format(e))
             self.programmed.emit(False)
 
     def terminate_flashing(self):
