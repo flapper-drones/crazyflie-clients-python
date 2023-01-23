@@ -199,7 +199,7 @@ class MainUI(QtWidgets.QMainWindow, main_window_class):
 
         self.joystickReader.assisted_input_updated.add_callback(
             lambda *args: self._disable_input or
-            self.cf.commander.send_velocity_world_setpoint(*args))
+            self.cf.commander.send_position_setpoint(*args))
 
         self.joystickReader.heighthold_input_updated.add_callback(
             lambda *args: self._disable_input or

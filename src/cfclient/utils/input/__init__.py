@@ -70,7 +70,6 @@ MIN_TARGET_HEIGHT = 0.03
 MIN_HOVER_HEIGHT = 0.20
 INPUT_READ_PERIOD = 0.01
 
-
 class JoystickReader(object):
     """
     Thread that will read input from devices/joysticks and send control-set
@@ -111,6 +110,11 @@ class JoystickReader(object):
         self.springy_throttle = True
         self._target_height = INITAL_TAGET_HEIGHT
 
+        self._targetx = 0
+        self._targety = 0
+        self._targetz = 0
+        self._targetyaw = 0
+        
         self.trim_roll = Config().get("trim_roll")
         self.trim_pitch = Config().get("trim_pitch")
         self._rp_dead_band = 0.1
@@ -441,16 +445,70 @@ class JoystickReader(object):
                          JoystickReader.ASSISTED_CONTROL_HOVER):
                     self._target_height = INITAL_TAGET_HEIGHT
 
+                # Reset position target when position-hold is not selected
+                if not data.assistedControl or \
+                        (self._assisted_control !=
+                         JoystickReader.ASSISTED_CONTROL_POSHOLD):
+                    self._targetx = 0
+                    self._targety = 0
+                    self._targetz = 0
+                    self._targetyaw = 180
+                    
                 if self._assisted_control == \
                         JoystickReader.ASSISTED_CONTROL_POSHOLD \
                         and data.assistedControl:
-                    vx = data.roll
-                    vy = data.pitch
-                    vz = data.thrust
+                    velx = data.pitch
+                    vely = -data.roll
+                    velz = data.thrust
                     yawrate = data.yaw
-                    # The odd use of vx and vy is to map forward on the
-                    # physical joystick to positive X-axis
-                    self.assisted_input_updated.call(vy, -vx, vz, yawrate)
+
+                    # Deadband
+                    deadband_xyz = 0.25
+                    deadband_rate = 2
+                    if abs(velx) < deadband_xyz:
+                        velx = 0
+                    if abs(vely) < deadband_xyz:
+                        vely = 0
+                    if abs(velz) < deadband_xyz:
+                        velz = 0
+                    if abs(yawrate) < deadband_rate:
+                        yawrate = 0
+                    
+                    # Integrate velocity setpoints
+                    self._targetx += velx * INPUT_READ_PERIOD
+                    self._targety += vely * INPUT_READ_PERIOD
+                    self._targetz += velz * INPUT_READ_PERIOD
+                    self._targetyaw -= yawrate * INPUT_READ_PERIOD
+                    
+                    # Geofence position
+                    xmin = -0.5
+                    xmax = 0.5
+                    ymin = -0.25
+                    ymax = 0.75
+                    zmin = 0.05
+                    zmax = 0.75
+                    
+                    if self._targetx > xmax:
+                        self._targetx = xmax
+                    if self._targetx < xmin:
+                        self._targetx = xmin
+                    if self._targety > ymax:
+                        self._targety = ymax
+                    if self._targety < ymin:
+                        self._targety = ymin
+                    if self._targetz > zmax:
+                        self._targetz = zmax
+                    if self._targetz < zmin:
+                        self._targetz = zmin
+                    
+                    # Keep yaw within +/- 180 deg
+                    while self._targetyaw > 180:
+                        self._targetyaw -= 360
+                    while self._targetyaw < -180:
+                        self._targetyaw += 360
+                    
+                    # send position command
+                    self.assisted_input_updated.call(self._targetx, self._targety, self._targetz, self._targetyaw)
                 elif self._assisted_control == \
                         JoystickReader.ASSISTED_CONTROL_HOVER \
                         and data.assistedControl:
