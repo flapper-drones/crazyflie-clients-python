@@ -105,7 +105,7 @@ class FlightTab(TabToolbox, flight_tab_class):
     _assisted_control_updated_signal = pyqtSignal(bool)
     _heighthold_input_updated_signal = pyqtSignal(float, float, float, float)
     _hover_input_updated_signal = pyqtSignal(float, float, float, float)
-    # _poshold_input_updated_signal = pyqtSignal(float, float, float, float)
+    _assisted_input_updated_signal = pyqtSignal(float, float, float, float)
 
     _log_error_signal = pyqtSignal(object, str)
 
@@ -145,10 +145,12 @@ class FlightTab(TabToolbox, flight_tab_class):
             self._hover_input_updated_signal.emit)
         self._hover_input_updated_signal.connect(
             self._hover_input_updated)
-
+        self._helper.inputDeviceReader.assisted_input_updated.add_callback(
+            self._assisted_input_updated_signal.emit)
+        self._assisted_input_updated_signal.connect(
+            self._assisted_input_updated)
         self._helper.inputDeviceReader.assisted_control_updated.add_callback(
             self._assisted_control_updated_signal.emit)
-
         self._assisted_control_updated_signal.connect(
             self._assisted_control_updated)
 
@@ -345,20 +347,20 @@ class FlightTab(TabToolbox, flight_tab_class):
 
             self._change_input_labels(using_hover_assist=True)
 
-    # def _poshold_input_updated(self, vx, vy, vz, yaw):
-    #     if (self.isVisible() and
-    #             (self._helper.inputDeviceReader.get_assisted_control() ==
-    #              self._helper.inputDeviceReader.ASSISTED_CONTROL_POSHOLD)):
+    def _assisted_input_updated(self, x, y, z, yaw):
+        if (self.isVisible() and
+                (self._helper.inputDeviceReader.get_assisted_control() ==
+                 self._helper.inputDeviceReader.ASSISTED_CONTROL_POSHOLD)):
 
-    #         self.targetRoll.setText(("%0.2f m/s" % vy))
-    #         self.targetPitch.setText(("%0.2f m/s" % vx))
-    #         self.targetYaw.setText(("%0.2f deg/s" % yaw))
-    #         self.targetHeight.setText(("%.2f m/s" % vz))
-    #         self._change_input_labels(using_hover_assist=True)
+            self.targetRoll.setText(("%0.2f m" % x))
+            self.targetPitch.setText(("%0.2f m" % y))
+            self.targetYaw.setText(("%0.2f deg" % yaw))
+            self.targetHeight.setText(("%.2f m" % z))
+            self._change_input_labels(using_hover_assist=True)
 
     def _change_input_labels(self, using_hover_assist):
         if using_hover_assist:
-            pitch, roll, yaw = 'Velocity X', 'Velocity Y', 'Velocity Z'
+            pitch, roll, yaw = 'X', 'Y', 'Yaw'
         else:
             pitch, roll, yaw = 'Pitch', 'Roll', 'Yaw'
 

@@ -183,6 +183,13 @@ class InputReaderInterface(object):
                 # set previous values for slew limit logic
                 self._prev_thrust = self.input.thrust_slew_limit
                 self._last_time = current_time
+            elif assisted_control and \
+                    (self.input.get_assisted_control() ==
+                     self.input.ASSISTED_CONTROL_POSHOLD):
+                # do not drop thrust to 0 after switching posholdr mode off
+                # set previous values for slew limit logic
+                self._prev_thrust = self.input.thrust_slew_limit
+                self._last_time = current_time
 
             else:
                 # Scale the thrust to percent (it's between 0 and 1)
