@@ -738,7 +738,7 @@ class FlightTab(TabToolbox, flight_tab_class):
             self._led_ring_effect.setCurrentIndex(int(value))
 
     def _populate_assisted_mode_dropdown(self):
-        self._assist_mode_combo.addItem("Altitude hold", 0)
+        self._assist_mode_combo.addItem("[Not working] Altitude hold", 0)
         self._assist_mode_combo.addItem("Position hold", 1)
         self._assist_mode_combo.addItem("Height hold", 2)
         self._assist_mode_combo.addItem("Hover", 3)

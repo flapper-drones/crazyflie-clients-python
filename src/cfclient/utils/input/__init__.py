@@ -52,6 +52,8 @@ import cfclient
 from cfclient.utils.config import Config
 from cfclient.utils.config_manager import ConfigManager
 
+# from cflib.positioning.position_hl_commander import PositionHlCommander
+
 from cfclient.utils.periodictimer import PeriodicTimer
 from cflib.utils.callbacks import Caller
 from .mux.nomux import NoMux
@@ -114,6 +116,8 @@ class JoystickReader(object):
         self._targety = 0
         self._targetz = 0
         self._targetyaw = 0
+
+        self.prev_in_poshold = False
         
         self.trim_roll = Config().get("trim_roll")
         self.trim_pitch = Config().get("trim_pitch")
@@ -125,6 +129,14 @@ class JoystickReader(object):
         self.xmax = Config().get("maxX")
         self.ymax = Config().get("maxY")
         self.zmax = Config().get("maxZ")
+
+        # self._hlCommander = PositionHlCommander(
+        #     self._helper.cf,
+        #     x=0.0, y=0.0, z=0.0,
+        #     default_velocity=0.3,
+        #     default_height=0.5,
+        #     controller=int(self._helper.cf.param.get_value('stabilizer.controller'))
+        # )
         
         self._input_map = None
 
@@ -452,10 +464,14 @@ class JoystickReader(object):
                          JoystickReader.ASSISTED_CONTROL_HOVER):
                     self._target_height = INITAL_TAGET_HEIGHT
 
+                # if not data.assistedControl and self.prev_in_poshold:
+                    # self._hlCommander.land()
+                
                 # Reset position target when position-hold is not selected
                 if not data.assistedControl or \
                         (self._assisted_control !=
                          JoystickReader.ASSISTED_CONTROL_POSHOLD):
+                    #  Flapper_TODO: Reset to current position
                     self._targetx = 0
                     self._targety = 0
                     self._targetz = 0
@@ -464,6 +480,11 @@ class JoystickReader(object):
                 if self._assisted_control == \
                         JoystickReader.ASSISTED_CONTROL_POSHOLD \
                         and data.assistedControl:
+                    
+                    # Flapper_TODO: Only enable when receiving good quality Lighthouse data 
+
+                    # Flapper_TODO: Force to use High level landing when button is released
+
                     velx = data.pitch
                     vely = -data.roll
                     velz = data.thrust
@@ -516,6 +537,9 @@ class JoystickReader(object):
                     
                     # send position command
                     self.assisted_input_updated.call(self._targetx, self._targety, self._targetz, self._targetyaw)
+
+                    self.prev_in_poshold = True    
+
                 elif self._assisted_control == \
                         JoystickReader.ASSISTED_CONTROL_HOVER \
                         and data.assistedControl:
@@ -536,7 +560,7 @@ class JoystickReader(object):
                     # The odd use of vx and vy is to map forward on the
                     # physical joystick to positive X-axis
                     self.hover_input_updated.call(vy, -vx, yawrate,
-                                                  self._target_height)
+                                                  self._target_height)                          
                 else:
                     # Update the user roll/pitch trim from device
                     if data.toggled.pitchNeg and data.pitchNeg:
