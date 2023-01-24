@@ -145,10 +145,6 @@ class FlightTab(TabToolbox, flight_tab_class):
             self._hover_input_updated_signal.emit)
         self._hover_input_updated_signal.connect(
             self._hover_input_updated)
-        # self._helper.inputDeviceReader.poshold_input_updated.add_callback(
-        #     self._poshold_input_updated_signal.emit)
-        # self._poshold_input_updated_signal.connect(
-        #     self._poshold_input_updated)
 
         self._helper.inputDeviceReader.assisted_control_updated.add_callback(
             self._assisted_control_updated_signal.emit)
@@ -173,7 +169,13 @@ class FlightTab(TabToolbox, flight_tab_class):
         self.maxYawRate.valueChanged.connect(self.maxYawRateChanged)
         self.uiSetupReadySignal.connect(self.uiSetupReady)
         self.isInCrazyFlightmode = False
-
+        self.maxX.valueChanged.connect(self.maxXChanged)
+        self.maxY.valueChanged.connect(self.maxYChanged)
+        self.maxZ.valueChanged.connect(self.maxZChanged)
+        self.minX.valueChanged.connect(self.minXChanged)
+        self.minY.valueChanged.connect(self.minYChanged)
+        self.minZ.valueChanged.connect(self.minZChanged)
+        
         # Command Based Flight Control
         self._can_fly = 0
         self._hlCommander = None
@@ -211,6 +213,13 @@ class FlightTab(TabToolbox, flight_tab_class):
 
         self.targetCalPitch.setValue(Config().get("trim_pitch"))
         self.targetCalRoll.setValue(Config().get("trim_roll"))
+        
+        self.maxX.setValue(Config().get("maxX"))
+        self.maxY.setValue(Config().get("maxY"))
+        self.maxZ.setValue(Config().get("maxZ"))
+        self.minX.setValue(Config().get("minX"))
+        self.minY.setValue(Config().get("minY"))
+        self.minZ.setValue(Config().get("minZ"))
 
         self._helper.inputDeviceReader.alt1_updated.add_callback(self.alt1_updated)
         self._helper.inputDeviceReader.alt2_updated.add_callback(self.alt2_updated)
@@ -508,6 +517,42 @@ class FlightTab(TabToolbox, flight_tab_class):
         if (self.isInCrazyFlightmode is True):
             Config().set("max_rp", self.maxAngle.value())
 
+    def minXChanged(self):
+        logger.debug("minX updated to %f", self.minX.value())
+        self._helper.inputDeviceReader.minX = self.minX.value()
+        if (self.isInCrazyFlightmode is True):
+            Config().set("minX", self.minX.value())
+
+    def minYChanged(self):
+        logger.debug("minY updated to %f", self.minY.value())
+        self._helper.inputDeviceReader.minY = self.minY.value()
+        if (self.isInCrazyFlightmode is True):
+            Config().set("minY", self.minY.value())
+
+    def minZChanged(self):
+        logger.debug("minZ updated to %f", self.minZ.value())
+        self._helper.inputDeviceReader.minZ = self.minZ.value()
+        if (self.isInCrazyFlightmode is True):
+            Config().set("minZ", self.minZ.value())
+    
+    def maxXChanged(self):
+        logger.debug("maxX updated to %f", self.maxX.value())
+        self._helper.inputDeviceReader.maxX = self.maxX.value()
+        if (self.isInCrazyFlightmode is True):
+            Config().set("maxX", self.maxX.value())
+
+    def maxYChanged(self):
+        logger.debug("maxY updated to %f", self.maxY.value())
+        self._helper.inputDeviceReader.maxY = self.maxY.value()
+        if (self.isInCrazyFlightmode is True):
+            Config().set("maxY", self.maxY.value())
+
+    def maxZChanged(self):
+        logger.debug("maxZ updated to %f", self.maxZ.value())
+        self._helper.inputDeviceReader.maxZ = self.maxZ.value()
+        if (self.isInCrazyFlightmode is True):
+            Config().set("maxZ", self.maxZ.value())
+            
     def _trim_pitch_changed(self, value):
         logger.debug("Pitch trim updated to [%f]" % value)
         self._helper.inputDeviceReader.trim_pitch = value

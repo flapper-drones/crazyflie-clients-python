@@ -119,6 +119,13 @@ class JoystickReader(object):
         self.trim_pitch = Config().get("trim_pitch")
         self._rp_dead_band = 0.1
 
+        self.xmin = Config().get("minX")
+        self.ymin = Config().get("minY")
+        self.zmin = Config().get("minZ")
+        self.xmax = Config().get("maxX")
+        self.ymax = Config().get("maxY")
+        self.zmax = Config().get("maxZ")
+        
         self._input_map = None
 
         if Config().get("flightmode") == "Normal":
@@ -481,25 +488,25 @@ class JoystickReader(object):
                     self._targetyaw -= yawrate * INPUT_READ_PERIOD
                     
                     # Geofence position
-                    xmin = -0.5
-                    xmax = 0.5
-                    ymin = -0.25
-                    ymax = 0.75
-                    zmin = 0.05
-                    zmax = 0.75
-                    
-                    if self._targetx > xmax:
-                        self._targetx = xmax
-                    if self._targetx < xmin:
-                        self._targetx = xmin
-                    if self._targety > ymax:
-                        self._targety = ymax
-                    if self._targety < ymin:
-                        self._targety = ymin
-                    if self._targetz > zmax:
-                        self._targetz = zmax
-                    if self._targetz < zmin:
-                        self._targetz = zmin
+                    self.xmin = Config().get("minX")
+                    self.ymin = Config().get("minY")
+                    self.zmin = Config().get("minZ")
+                    self.xmax = Config().get("maxX")
+                    self.ymax = Config().get("maxY")
+                    self.zmax = Config().get("maxZ")
+
+                    if self._targetx > self.xmax:
+                        self._targetx = self.xmax
+                    if self._targetx < self.xmin:
+                        self._targetx = self.xmin
+                    if self._targety > self.ymax:
+                        self._targety = self.ymax
+                    if self._targety < self.ymin:
+                        self._targety = self.ymin
+                    if self._targetz > self.zmax:
+                        self._targetz = self.zmax
+                    if self._targetz < self.zmin:
+                        self._targetz = self.zmin
                     
                     # Keep yaw within +/- 180 deg
                     while self._targetyaw > 180:
