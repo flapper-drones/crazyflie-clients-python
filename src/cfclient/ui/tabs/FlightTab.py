@@ -107,6 +107,7 @@ class FlightTab(TabToolbox, flight_tab_class):
     _rp_trim_updated_signal = pyqtSignal(float, float)
     _emergency_stop_updated_signal = pyqtSignal(bool)
     _assisted_control_updated_signal = pyqtSignal(bool)
+    _land_now_updated_signal = pyqtSignal(bool)
     _heighthold_input_updated_signal = pyqtSignal(float, float, float, float)
     _hover_input_updated_signal = pyqtSignal(float, float, float, float)
     _assisted_input_updated_signal = pyqtSignal(float, float, float, float)
@@ -157,6 +158,10 @@ class FlightTab(TabToolbox, flight_tab_class):
             self._assisted_control_updated_signal.emit)
         self._assisted_control_updated_signal.connect(
             self._assisted_control_updated)
+        self._helper.inputDeviceReader.land_now_updated.add_callback(
+            self._land_now_updated_signal.emit)
+        self._land_now_updated_signal.connect(
+            self._land_now_updated)
 
         self._pose_data_signal.connect(self._pose_data_received)
         self._log_data_signal.connect(self._log_data_received)
@@ -331,7 +336,7 @@ class FlightTab(TabToolbox, flight_tab_class):
             self.estimatePitch.setText(("%.2f" % pitch))
             self.estimateYaw.setText(("%.2f" % estimated_yaw))
 
-            self.ai.setBaro(self.estimated_z, self.is_visible())
+            self.ai.setBaro(estimated_z, self.is_visible())
             self.ai.setRollPitch(-roll, pitch, self.is_visible())
 
     def return_pose ():
@@ -373,6 +378,11 @@ class FlightTab(TabToolbox, flight_tab_class):
             self.targetYaw.setText(("%0.2f deg" % yaw))
             self.targetHeight.setText(("%.2f m" % z))
             self._change_input_labels(using_hover_assist=True)
+
+    def _land_now_updated(self):
+        print('Landing now')
+        # self._hlCommander.land()
+        # time.sleep(1)
 
     def _change_input_labels(self, using_hover_assist):
         if using_hover_assist:

@@ -52,8 +52,6 @@ import cfclient
 from cfclient.utils.config import Config
 from cfclient.utils.config_manager import ConfigManager
 
-# from cflib.positioning.position_hl_commander import PositionHlCommander
-
 from cfclient.utils.periodictimer import PeriodicTimer
 from cflib.utils.callbacks import Caller
 from .mux.nomux import NoMux
@@ -116,6 +114,7 @@ class JoystickReader(object):
         self._targety = 0
         self._targetz = 0
         self._targetyaw = 0
+        self.landing_now = False
 
         self.prev_in_poshold = False
         
@@ -129,14 +128,6 @@ class JoystickReader(object):
         self.xmax = Config().get("maxX")
         self.ymax = Config().get("maxY")
         self.zmax = Config().get("maxZ")
-
-        # self._hlCommander = PositionHlCommander(
-        #     self._helper.cf,
-        #     x=0.0, y=0.0, z=0.0,
-        #     default_velocity=0.3,
-        #     default_height=0.5,
-        #     controller=int(self._helper.cf.param.get_value('stabilizer.controller'))
-        # )
         
         self._input_map = None
 
@@ -198,6 +189,7 @@ class JoystickReader(object):
         self.device_discovery = Caller()
         self.device_error = Caller()
         self.assisted_control_updated = Caller()
+        self.land_now_updated = Caller()
         self.alt1_updated = Caller()
         self.alt2_updated = Caller()
 
@@ -438,7 +430,12 @@ class JoystickReader(object):
                                 "Exception while doing callback from "
                                 "input-device for assited "
                                 "control: {}".format(e))
-
+                    
+                    if not data.assistedControl or \
+                        (self._assisted_control !=
+                         JoystickReader.ASSISTED_CONTROL_POSHOLD):
+                        self.land_now_updated.call(data.assistedControl) # gets registered in the Flight Tab but currently does nothing there
+                        self.landing_now = True
                 if data.toggled.estop:
                     try:
                         self.emergency_stop_updated.call(data.estop)
@@ -467,43 +464,52 @@ class JoystickReader(object):
                          JoystickReader.ASSISTED_CONTROL_HOVER):
                     self._target_height = INITAL_TAGET_HEIGHT
 
-                # if not data.assistedControl and self.prev_in_poshold:
-                    # self._hlCommander.land()
                 
                 # Reset position target when position-hold is not selected to the current position
                 if not data.assistedControl or \
                         (self._assisted_control !=
                          JoystickReader.ASSISTED_CONTROL_POSHOLD):
-                    pose1, pose2, pose3, pose4 = flight.return_pose()
-                    self._targetx = pose1
-                    self._targety = pose2
-                    self._targetz = pose3
-                    self._targetyaw = pose4
+                    posex, posey, posez, poseyaw = flight.return_pose()
+                    if posez < 0.1:
+                        self.landing_now = False
+                    if not self.landing_now:
+                        self._targetx = posex
+                        self._targety = posey
+                        self._targetz = posez
+                        self._targetyaw = poseyaw    
                     
-                if self._assisted_control == \
-                        JoystickReader.ASSISTED_CONTROL_POSHOLD \
-                        and data.assistedControl:
+                if (self._assisted_control == JoystickReader.ASSISTED_CONTROL_POSHOLD and data.assistedControl) or \
+                    self.landing_now:
                     
-                    # Flapper_TODO: Only enable when receiving good quality Lighthouse data and battery is high
+                    # Flapper_TODO: Only enable take off when receiving good quality Lighthouse data and battery is high
+                    # Flapper_TODO: Land when receiving bad quality/no Lighthouse data and battery is low
 
-                    # Flapper_TODO: Force to use High level landing when button is released or when battery is low
+                    # Flapper_TODO: Set max velocities in the UI
+                    # Flapper_TODO: Enable to change the colour by using the remote
 
-                    velx = data.pitch
-                    vely = -data.roll
-                    velz = data.thrust
-                    yawrate = data.yaw
 
-                    # Deadband
-                    deadband_xyz = 0.25
-                    deadband_rate = 2
-                    if abs(velx) < deadband_xyz:
-                        velx = 0
-                    if abs(vely) < deadband_xyz:
-                        vely = 0
-                    if abs(velz) < deadband_xyz:
-                        velz = 0
-                    if abs(yawrate) < deadband_rate:
-                        yawrate = 0
+                    if self.landing_now:
+                        velx = 0.0
+                        vely = 0.0
+                        velz = -0.5
+                        yawrate = 0.0
+                    else:
+                        velx = data.pitch*0.5
+                        vely = -data.roll*0.5
+                        velz = data.thrust*0.5
+                        yawrate = data.yaw*0.25
+
+                        # Deadband
+                        deadband_xyz = 0.25
+                        deadband_rate = 2
+                        if abs(velx) < deadband_xyz:
+                            velx = 0
+                        if abs(vely) < deadband_xyz:
+                            vely = 0
+                        if abs(velz) < deadband_xyz:
+                            velz = 0
+                        if abs(yawrate) < deadband_rate:
+                            yawrate = 0
                     
                     # Integrate velocity setpoints
                     self._targetx += velx * INPUT_READ_PERIOD
@@ -540,7 +546,7 @@ class JoystickReader(object):
                     
                     # send position command
                     self.assisted_input_updated.call(self._targetx, self._targety, self._targetz, self._targetyaw)
-
+                    
                     self.prev_in_poshold = True    
 
                 elif self._assisted_control == \
