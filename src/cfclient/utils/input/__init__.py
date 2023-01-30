@@ -475,7 +475,7 @@ class JoystickReader(object):
                     self._targetx = 0
                     self._targety = 0
                     self._targetz = 0
-                    self._targetyaw = 180
+                    self._targetyaw = 0
                     
                 if self._assisted_control == \
                         JoystickReader.ASSISTED_CONTROL_POSHOLD \
