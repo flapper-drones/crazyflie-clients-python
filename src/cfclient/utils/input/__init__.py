@@ -203,7 +203,7 @@ class JoystickReader(object):
 
         # Call with 3 bools (rp_limiting, yaw_limiting, thrust_limiting)
         self.limiting_updated = Caller()
-
+          
     def _get_device_from_name(self, device_name):
         """Get the raw device from a name"""
         for d in readers.devices():
@@ -385,6 +385,9 @@ class JoystickReader(object):
 
     def read_input(self):
         """Read input data from the selected device"""
+
+        from cfclient.ui.tabs.FlightTab import FlightTab as flight
+
         try:
             data = self._selected_mux.read()
 
@@ -467,23 +470,23 @@ class JoystickReader(object):
                 # if not data.assistedControl and self.prev_in_poshold:
                     # self._hlCommander.land()
                 
-                # Reset position target when position-hold is not selected
+                # Reset position target when position-hold is not selected to the current position
                 if not data.assistedControl or \
                         (self._assisted_control !=
                          JoystickReader.ASSISTED_CONTROL_POSHOLD):
-                    #  Flapper_TODO: Reset to current position
-                    self._targetx = 0
-                    self._targety = 0
-                    self._targetz = 0
-                    self._targetyaw = 0
+                    pose1, pose2, pose3, pose4 = flight.return_pose()
+                    self._targetx = pose1
+                    self._targety = pose2
+                    self._targetz = pose3
+                    self._targetyaw = pose4
                     
                 if self._assisted_control == \
                         JoystickReader.ASSISTED_CONTROL_POSHOLD \
                         and data.assistedControl:
                     
-                    # Flapper_TODO: Only enable when receiving good quality Lighthouse data 
+                    # Flapper_TODO: Only enable when receiving good quality Lighthouse data and battery is high
 
-                    # Flapper_TODO: Force to use High level landing when button is released
+                    # Flapper_TODO: Force to use High level landing when button is released or when battery is low
 
                     velx = data.pitch
                     vely = -data.roll

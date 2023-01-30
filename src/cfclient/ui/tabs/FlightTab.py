@@ -81,6 +81,10 @@ When activated, keeps the Crazyflie at 40cm above the ground and tries to
 keep the position in X and Y as well. Thrust control becomes height velocity
 control. Requires a flow deck. Uses body-fixed coordinates."""
 
+estimated_x = 0.0
+estimated_y = 0.0
+estimated_z = 0.0
+estimated_yaw = 0.0
 
 class CommanderAction(Enum):
     TAKE_OFF = 1
@@ -306,20 +310,32 @@ class FlightTab(TabToolbox, flight_tab_class):
                 self._update_flight_commander(True)
 
     def _pose_data_received(self, pose_logger, pose):
+        global estimated_x
+        global estimated_y
+        global estimated_z
+        global estimated_yaw
+        
+        estimated_x = pose[0]
+        estimated_y = pose[1]
+        estimated_z = pose[2]
+        estimated_yaw = pose[5]
+
         if self.isVisible():
-            estimated_z = pose[2]
             roll = pose[3]
             pitch = pose[4]
 
-            self.estimateX.setText(("%.2f" % pose[0]))
-            self.estimateY.setText(("%.2f" % pose[1]))
+            self.estimateX.setText(("%.2f" % estimated_x))
+            self.estimateY.setText(("%.2f" % estimated_y))
             self.estimateZ.setText(("%.2f" % estimated_z))
             self.estimateRoll.setText(("%.2f" % roll))
             self.estimatePitch.setText(("%.2f" % pitch))
-            self.estimateYaw.setText(("%.2f" % pose[5]))
+            self.estimateYaw.setText(("%.2f" % estimated_yaw))
 
-            self.ai.setBaro(estimated_z, self.is_visible())
+            self.ai.setBaro(self.estimated_z, self.is_visible())
             self.ai.setRollPitch(-roll, pitch, self.is_visible())
+
+    def return_pose ():
+        return estimated_x, estimated_y, estimated_z, estimated_yaw
 
     def _heighthold_input_updated(self, roll, pitch, yaw, height):
         if (self.isVisible() and
