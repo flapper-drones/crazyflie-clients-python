@@ -80,6 +80,8 @@ logger = logging.getLogger(__name__)
                                             '/ui/main.ui'))
 
 
+glob_vbat = 0.0
+
 class UIState:
     DISCONNECTED = 0
     CONNECTING = 1
@@ -563,6 +565,8 @@ class MainUI(QtWidgets.QMainWindow, main_window_class):
         self.logConfigDialogue.show()
 
     def _update_battery(self, timestamp, data, logconf):
+        global glob_vbat
+        
         self.batteryBar.setValue(int(data["pm.vbat"] * 1000))
 
         color = UiUtils.COLOR_BLUE
@@ -575,6 +579,11 @@ class MainUI(QtWidgets.QMainWindow, main_window_class):
 
         self.batteryBar.setStyleSheet(UiUtils.progressbar_stylesheet(color))
         self._aff_volts.setText(("%.3f" % data["pm.vbat"]))
+
+        glob_vbat = data["pm.vbat"]
+    
+    def return_battery ():
+        return glob_vbat
 
     def _connected(self):
         self.uiState = UIState.CONNECTED

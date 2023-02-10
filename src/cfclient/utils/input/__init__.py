@@ -114,10 +114,10 @@ class JoystickReader(object):
         self._targety = 0
         self._targetz = 0
         self._targetyaw = 0
+        self.assisted_flying = False
         self.landing_now = False
+        self.preflight_ok = False
 
-        self.prev_in_poshold = False
-        
         self.trim_roll = Config().get("trim_roll")
         self.trim_pitch = Config().get("trim_pitch")
         self._rp_dead_band = 0.1
@@ -379,6 +379,8 @@ class JoystickReader(object):
         """Read input data from the selected device"""
 
         from cfclient.ui.tabs.FlightTab import FlightTab as flight
+        from cfclient.ui.main import MainUI as mainUI
+        from cfclient.ui.tabs.lighthouse_tab import LighthouseTab as lighthouse
 
         try:
             data = self._selected_mux.read()
@@ -465,26 +467,47 @@ class JoystickReader(object):
                     self._target_height = INITAL_TAGET_HEIGHT
 
                 
+                drop_height = 0.07
+                
                 # Reset position target when position-hold is not selected to the current position
                 if not data.assistedControl or \
                         (self._assisted_control !=
                          JoystickReader.ASSISTED_CONTROL_POSHOLD):
                     posex, posey, posez, poseyaw = flight.return_pose()
-                    if posez < 0.1:
+                    if posez < drop_height:
                         self.landing_now = False
+                        self.assisted_flying = False
                     if not self.landing_now:
                         self._targetx = posex
                         self._targety = posey
                         self._targetz = posez
                         self._targetyaw = poseyaw    
-                    
-                if (self._assisted_control == JoystickReader.ASSISTED_CONTROL_POSHOLD and data.assistedControl) or \
-                    self.landing_now:
-                    
-                    # Flapper_TODO: Only enable take off when receiving good quality Lighthouse data and battery is high
-                    # Flapper_TODO: Land when receiving bad quality/no Lighthouse data and battery is low
+                
+                battery_limit = 3.0
 
-                    # Flapper_TODO: Set max velocities in the UI
+                if not self.assisted_flying:
+                    if (mainUI.return_battery() > battery_limit and lighthouse.return_lhready()):
+                        self.preflight_ok = True
+                    else:
+                        self.preflight_ok = False
+                    
+                if (self.assisted_flying and \
+                    (mainUI.return_battery() < battery_limit or not lighthouse.return_lhready()) ):
+                        self.landing_now = True
+
+                if (self._assisted_control == JoystickReader.ASSISTED_CONTROL_POSHOLD and data.assistedControl and self.preflight_ok) or \
+                    self.landing_now:
+
+                    self.assisted_flying = True
+                    
+                    # Done: Only enable take off when receiving good quality Lighthouse data and battery is high
+                    # Done: Land when battery is low or when bad quality/no Lighthouse data
+
+                    # Flapper_TODO: stop landing and resume flying when good quality Lighthouse data again
+                    
+                    # Flapper_TODO: fix bug - preflight_not_ok and throttle'
+                    # Flapper_TODO: fix bug - timer assert - does it happen only when battery powered for too long?
+                    # Flapper_TODO: Set max velocities, drop height and battery limit in the UI
                     # Flapper_TODO: Enable to change the colour by using the remote
 
 
@@ -494,8 +517,8 @@ class JoystickReader(object):
                         velz = -0.5
                         yawrate = 0.0
                     else:
-                        velx = data.pitch*0.5
-                        vely = -data.roll*0.5
+                        velx = data.pitch
+                        vely = -data.roll
                         velz = data.thrust*0.5
                         yawrate = data.yaw*0.25
 
@@ -546,9 +569,7 @@ class JoystickReader(object):
                     
                     # send position command
                     self.assisted_input_updated.call(self._targetx, self._targety, self._targetz, self._targetyaw)
-                    
-                    self.prev_in_poshold = True    
-
+                
                 elif self._assisted_control == \
                         JoystickReader.ASSISTED_CONTROL_HOVER \
                         and data.assistedControl:

@@ -69,6 +69,7 @@ STYLE_BLUE_BACKGROUND = "background-color: lightblue;"
 STYLE_ORANGE_BACKGROUND = "background-color: orange;"
 STYLE_NO_BACKGROUND = "background-color: none;"
 
+lhstatus = 0
 
 class MarkerPose():
     COL_X_AXIS = 'red'
@@ -338,7 +339,7 @@ class LighthouseTab(TabToolbox, lighthouse_tab_class):
             self._bs_available]
 
         self._lh_status = self.STATUS_NOT_RECEIVING
-
+        
         self._graph_timer = QTimer()
         self._graph_timer.setInterval(int(1000 / self.FPS))
         self._graph_timer.timeout.connect(self._update_graphics)
@@ -443,6 +444,7 @@ class LighthouseTab(TabToolbox, lighthouse_tab_class):
     def _status_report_received(self, timestamp, data, logconf):
         """Callback from the logging system when the status is updated."""
 
+        global lhstatus
         if self.LOG_RECEIVE in data:
             bit_mask = data[self.LOG_RECEIVE]
             self._adjust_bitmask(bit_mask, self._bs_receives_light)
@@ -466,13 +468,21 @@ class LighthouseTab(TabToolbox, lighthouse_tab_class):
             self._adjust_bitmask(bit_mask, self._bs_data_to_estimator)
 
         if self.LOG_STATUS in data:
-            self._lh_status = data[self.LOG_STATUS]
-
+            lhstatus = data[self.LOG_STATUS]
+            self._lh_status = data[self.LOG_STATUS] 
+                       
         if self.LOG_AVAILABLE in data:
             bit_mask = data[self.LOG_AVAILABLE]
             self._adjust_bitmask(bit_mask, self._bs_available)
 
         self._update_basestation_status_indicators()
+    
+    def return_lhready():
+        if lhstatus == 2:
+            lhready = True
+        else:
+            lhready = False
+        return lhready
 
     def _disconnected(self, link_uri):
         """Callback for when the Crazyflie has been disconnected"""
