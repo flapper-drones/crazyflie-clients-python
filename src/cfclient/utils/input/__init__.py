@@ -485,26 +485,30 @@ class JoystickReader(object):
                         self._targetz = posez
                         self._targetyaw = poseyaw    
                 
+                # allow take off only when enough battery and good quality Lighthouse
                 if not self.assisted_flying:
                     if (mainUI.return_battery() > self.battery_limit and lighthouse.return_lhready()):
                         self.preflight_ok = True
                     else:
                         self.preflight_ok = False
-                    
+                
+                # stop landing and return to poshold when assistedControl button pressed again or when good lighthouse again
+                if (self._assisted_control == JoystickReader.ASSISTED_CONTROL_POSHOLD and data.assistedControl and self.preflight_ok and lighthouse.return_lhready()):
+                    self.landing_now = False    
+                
+                # land when battery low or low quality lighthouse
                 if (self.assisted_flying and \
                     (mainUI.return_battery() < self.battery_limit or not lighthouse.return_lhready()) ):
                         self.landing_now = True
-
+                
                 if (self._assisted_control == JoystickReader.ASSISTED_CONTROL_POSHOLD and data.assistedControl and self.preflight_ok) or \
                     self.landing_now:
 
                     self.assisted_flying = True
                     
-                    # Done: Only enable take off when receiving good quality Lighthouse data and battery is high
-                    # Done: Land when battery is low or when bad quality/no Lighthouse data
-                    # Done: Set max velocities, drop height and battery limit in the UI
-                    
                     # Flapper_TODO: stop landing and resume flying when good quality Lighthouse data again
+                    
+                    # Flapper_TODO: Kill motors when emergency stop?
                     
                     # Flapper_TODO: fix bug - preflight_not_ok and throttle'
                     # Flapper_TODO: fix bug - timer assert - does it happen only when battery powered for too long?
