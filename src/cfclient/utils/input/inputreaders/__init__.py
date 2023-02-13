@@ -142,6 +142,9 @@ class InputDevice(InputReaderInterface):
         self.data.roll = InputDevice.deadband(self.data.roll, self.db)
         self.data.pitch = InputDevice.deadband(self.data.pitch, self.db)
 
+        if (not self.data.assistedControl and not self.data.alt2):
+            self.data.thrust = 0
+
         if self.limit_rp:
             [self.data.roll, self.data.pitch] = self._scale_rp(self.data.roll,
                                                                self.data.pitch)
