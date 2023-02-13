@@ -186,6 +186,10 @@ class FlightTab(TabToolbox, flight_tab_class):
         self.minX.valueChanged.connect(self.minXChanged)
         self.minY.valueChanged.connect(self.minYChanged)
         self.minZ.valueChanged.connect(self.minZChanged)
+        self.battery_limit.valueChanged.connect(self.battery_limitChanged)
+        self.drop_height.valueChanged.connect(self.drop_heightChanged)
+        self.velXYmax.valueChanged.connect(self.velXYmaxChanged)
+        self.velZmax.valueChanged.connect(self.velZmaxChanged)
         
         # Command Based Flight Control
         self._can_fly = 0
@@ -231,6 +235,10 @@ class FlightTab(TabToolbox, flight_tab_class):
         self.minX.setValue(Config().get("minX"))
         self.minY.setValue(Config().get("minY"))
         self.minZ.setValue(Config().get("minZ"))
+        self.battery_limit.setValue(Config().get("battery_limit"))
+        self.drop_height.setValue(Config().get("drop_height"))
+        self.velXYmax.setValue(Config().get("velXYmax"))
+        self.velZmax.setValue(Config().get("velZmax"))
 
         self._helper.inputDeviceReader.alt1_updated.add_callback(self.alt1_updated)
         self._helper.inputDeviceReader.alt2_updated.add_callback(self.alt2_updated)
@@ -580,6 +588,27 @@ class FlightTab(TabToolbox, flight_tab_class):
         self._helper.inputDeviceReader.maxZ = self.maxZ.value()
         if (self.isInCrazyFlightmode is True):
             Config().set("maxZ", self.maxZ.value())
+    
+    def battery_limitChanged(self):
+        logger.debug("battery_limit updated to %f", self.battery_limit.value())
+        self._helper.inputDeviceReader.battery_limit = self.battery_limit.value()
+        if (self.isInCrazyFlightmode is True):
+            Config().set("battery_limit", self.battery_limit.value())
+    def drop_heightChanged(self):
+        logger.debug("drop_height updated to %f", self.drop_height.value())
+        self._helper.inputDeviceReader.drop_height = self.drop_height.value()
+        if (self.isInCrazyFlightmode is True):
+            Config().set("drop_height", self.drop_height.value())
+    def velXYmaxChanged(self):
+        logger.debug("velXYmax updated to %f", self.velXYmax.value())
+        self._helper.inputDeviceReader.velXYmax = self.velXYmax.value()
+        if (self.isInCrazyFlightmode is True):
+            Config().set("velXYmax", self.velXYmax.value())
+    def velZmaxChanged(self):
+        logger.debug("velZmax updated to %f", self.velZmax.value())
+        self._helper.inputDeviceReader.velZmax = self.velZmax.value()
+        if (self.isInCrazyFlightmode is True):
+            Config().set("velZmax", self.velZmax.value())
             
     def _trim_pitch_changed(self, value):
         logger.debug("Pitch trim updated to [%f]" % value)

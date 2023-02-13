@@ -128,7 +128,11 @@ class JoystickReader(object):
         self.xmax = Config().get("maxX")
         self.ymax = Config().get("maxY")
         self.zmax = Config().get("maxZ")
-        
+        self.battery_limit = Config().get("battery_limit")
+        self.drop_height = Config().get("drop_height")
+        self.velXYmax = Config().get("velXYmax")
+        self.velZmax = Config().get("velZmax")
+                
         self._input_map = None
 
         if Config().get("flightmode") == "Normal":
@@ -467,14 +471,12 @@ class JoystickReader(object):
                     self._target_height = INITAL_TAGET_HEIGHT
 
                 
-                drop_height = 0.07
-                
                 # Reset position target when position-hold is not selected to the current position
                 if not data.assistedControl or \
                         (self._assisted_control !=
                          JoystickReader.ASSISTED_CONTROL_POSHOLD):
                     posex, posey, posez, poseyaw = flight.return_pose()
-                    if posez < drop_height:
+                    if posez < self.drop_height:
                         self.landing_now = False
                         self.assisted_flying = False
                     if not self.landing_now:
@@ -483,16 +485,14 @@ class JoystickReader(object):
                         self._targetz = posez
                         self._targetyaw = poseyaw    
                 
-                battery_limit = 3.0
-
                 if not self.assisted_flying:
-                    if (mainUI.return_battery() > battery_limit and lighthouse.return_lhready()):
+                    if (mainUI.return_battery() > self.battery_limit and lighthouse.return_lhready()):
                         self.preflight_ok = True
                     else:
                         self.preflight_ok = False
                     
                 if (self.assisted_flying and \
-                    (mainUI.return_battery() < battery_limit or not lighthouse.return_lhready()) ):
+                    (mainUI.return_battery() < self.battery_limit or not lighthouse.return_lhready()) ):
                         self.landing_now = True
 
                 if (self._assisted_control == JoystickReader.ASSISTED_CONTROL_POSHOLD and data.assistedControl and self.preflight_ok) or \
@@ -502,12 +502,12 @@ class JoystickReader(object):
                     
                     # Done: Only enable take off when receiving good quality Lighthouse data and battery is high
                     # Done: Land when battery is low or when bad quality/no Lighthouse data
-
+                    # Done: Set max velocities, drop height and battery limit in the UI
+                    
                     # Flapper_TODO: stop landing and resume flying when good quality Lighthouse data again
                     
                     # Flapper_TODO: fix bug - preflight_not_ok and throttle'
                     # Flapper_TODO: fix bug - timer assert - does it happen only when battery powered for too long?
-                    # Flapper_TODO: Set max velocities, drop height and battery limit in the UI
                     # Flapper_TODO: Enable to change the colour by using the remote
 
 
@@ -517,10 +517,10 @@ class JoystickReader(object):
                         velz = -0.5
                         yawrate = 0.0
                     else:
-                        velx = data.pitch
-                        vely = -data.roll
-                        velz = data.thrust*0.5
-                        yawrate = data.yaw*0.25
+                        velx = data.pitch*self.velXYmax
+                        vely = -data.roll*self.velXYmax
+                        velz = data.thrust*self.velZmax
+                        yawrate = data.yaw
 
                         # Deadband
                         deadband_xyz = 0.25
